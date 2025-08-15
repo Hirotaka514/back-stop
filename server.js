@@ -2,41 +2,40 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-// Crear app de Express
 const app = express();
-
-// Crear servidor HTTP
 const httpServer = createServer(app);
 
-// Configurar Socket.IO con CORS abierto para pruebas
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Permite conexiones desde cualquier frontend
+    origin: "*", // permite conexión desde cualquier origen (React en local o Vercel)
   },
 });
 
-// Evento cuando un cliente se conecta
 io.on("connection", (socket) => {
   console.log("Jugador conectado:", socket.id);
 
-  // Recibir mensajes del cliente
+  // Mensajes de chat
   socket.on("mensaje", (data) => {
     console.log("Mensaje recibido:", data);
-    socket.broadcast.emit("mensaje", data); // Enviar a todos menos al que envió
+    socket.broadcast.emit("mensaje", data);
   });
 
-  // Evento al desconectarse
+  // Movimiento del cuadrado
+  socket.on("mover", (pos) => {
+    console.log("Movimiento recibido:", pos);
+    socket.broadcast.emit("mover", pos);
+  });
+
   socket.on("disconnect", () => {
     console.log("Jugador desconectado:", socket.id);
   });
 });
 
-// Ruta de prueba HTTP
 app.get("/", (req, res) => {
   res.send("Servidor WebSocket activo 🚀");
 });
 
-// Iniciar servidor
+// Usar el puerto asignado por Render o 3001 en local
 httpServer.listen(process.env.PORT || 3001, () => {
   console.log(`Servidor corriendo en puerto ${process.env.PORT || 3001}`);
 });
